@@ -1,0 +1,4 @@
+once_cell 1.21.4
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/matklad/once_cell
+Registry source: registry+https://github.com/rust-lang/crates.io-index

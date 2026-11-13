@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Проверка расчёта здания</title><style>body{font:18px system-ui;background:#18212b;color:white;padding:30px}button{font:inherit;padding:10px}pre{white-space:pre-wrap}</style><h1>Общий расчёт здания в Web Worker</h1><button id="run">Проверить два этажа</button><p id="state">Готов к запуску</p><p id="ticks"></p><pre id="events"></pre><script type="module">
+const button=document.querySelector('#run'),state=document.querySelector('#state'),events=document.querySelector('#events'),ticks=document.querySelector('#ticks');
+button.onclick=async()=>{button.disabled=true;events.textContent='';let n=0;const timer=setInterval(()=>ticks.textContent='Обновлений интерфейса: '+ ++n,16),channel=new BroadcastChannel('building-test-'+Date.now());
+const progress=payload=>{const e=typeof payload==='string'?JSON.parse(payload):payload;state.textContent=e[0];events.textContent+=e[0]+'\n';};channel.onmessage=({data})=>progress(data);
+const worker=new Worker('./solver_worker.js',{type:'module'});worker.onerror=e=>{state.textContent='ОШИБКА: '+e.message;clearInterval(timer);button.disabled=false;channel.close();worker.terminate();};
+worker.onmessage=async({data})=>{try{if(data.kind==='progress'){progress(data.payload);return;}if(data.kind==='error')throw Error(data.payload);if(data.kind!=='result_bytes')throw Error('Ожидался бинарный результат');
+const text=await new Response(new Blob([data.payload]).stream().pipeThrough(new DecompressionStream('deflate'))).text();const reply=JSON.parse(text);if(!reply.first.Ok)throw Error(JSON.stringify(reply));const cases=reply.first.Ok.cases;
+if(cases.length!==2)throw Error('Количество загружений');for(let i=0;i<2;i++){if(Math.abs(cases[i].applied_kn-[10,20][i])>1e-7||Math.abs(cases[i].balance_kn)>1e-7||cases[i].w_mm.some(v=>!Number.isFinite(v)))throw Error('Неверный баланс/нагрузка');}
+state.textContent='ПРОВЕРКА ПРОШЛА · 2 этажа · 2 загружения · нагрузки 10 / 20 кН · баланс сохранён · '+data.payload.byteLength+' байт';document.body.dataset.passed='true';
+}catch(e){state.textContent='ОШИБКА: '+e;}finally{if(data.kind!=='progress'){clearInterval(timer);button.disabled=false;channel.close();worker.terminate();}}};
+worker.postMessage({text:await(await fetch('./building_solver_fixture.json')).text(),channel:channel.name,binary:true});};</script>

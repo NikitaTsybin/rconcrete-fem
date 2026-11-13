@@ -1,0 +1,4 @@
+quote 1.0.47
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/dtolnay/quote
+Registry source: registry+https://github.com/rust-lang/crates.io-index

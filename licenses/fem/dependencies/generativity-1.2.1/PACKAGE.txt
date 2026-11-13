@@ -1,0 +1,4 @@
+generativity 1.2.1
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/CAD97/generativity
+Registry source: registry+https://github.com/rust-lang/crates.io-index

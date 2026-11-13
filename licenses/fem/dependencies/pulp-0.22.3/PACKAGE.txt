@@ -1,0 +1,4 @@
+pulp 0.22.3
+License declaration: MIT
+Repository: https://github.com/sarah-quinones/pulp/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

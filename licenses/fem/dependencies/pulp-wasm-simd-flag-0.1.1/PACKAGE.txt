@@ -1,0 +1,4 @@
+pulp-wasm-simd-flag 0.1.1
+License declaration: MIT
+Repository: https://github.com/sarah-quinones/pulp/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

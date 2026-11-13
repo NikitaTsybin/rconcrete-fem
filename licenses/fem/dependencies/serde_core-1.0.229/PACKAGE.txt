@@ -1,0 +1,4 @@
+serde_core 1.0.229
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/serde-rs/serde
+Registry source: registry+https://github.com/rust-lang/crates.io-index

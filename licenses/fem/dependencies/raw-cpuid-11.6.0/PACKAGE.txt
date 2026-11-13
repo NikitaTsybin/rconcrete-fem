@@ -1,0 +1,4 @@
+raw-cpuid 11.6.0
+License declaration: MIT
+Repository: https://github.com/gz/rust-cpuid
+Registry source: registry+https://github.com/rust-lang/crates.io-index

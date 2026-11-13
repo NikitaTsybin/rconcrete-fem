@@ -1,0 +1,4 @@
+defer 0.2.1
+License declaration: MIT/Apache-2.0
+Repository: https://github.com/andrewhickman/defer/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

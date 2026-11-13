@@ -1,0 +1,4 @@
+libm 0.2.16
+License declaration: MIT
+Repository: https://github.com/rust-lang/compiler-builtins
+Registry source: registry+https://github.com/rust-lang/crates.io-index

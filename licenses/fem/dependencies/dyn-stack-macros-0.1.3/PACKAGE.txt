@@ -1,0 +1,4 @@
+dyn-stack-macros 0.1.3
+License declaration: MIT
+Repository: https://github.com/kitegi/dynstack/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

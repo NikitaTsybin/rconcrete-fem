@@ -1,0 +1,4 @@
+num-traits 0.2.19
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/rust-num/num-traits
+Registry source: registry+https://github.com/rust-lang/crates.io-index

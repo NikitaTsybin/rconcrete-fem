@@ -1,0 +1,4 @@
+autocfg 1.5.1
+License declaration: Apache-2.0 OR MIT
+Repository: https://github.com/cuviper/autocfg
+Registry source: registry+https://github.com/rust-lang/crates.io-index

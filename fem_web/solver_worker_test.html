@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Проверка Worker МКЭ</title>
+<style>body{background:#17202b;color:#e8edf5;font:18px system-ui;padding:32px}button{font:inherit;padding:12px}pre{white-space:pre-wrap}#tick{color:#66dfce}</style>
+<h1>Проверка Worker МКЭ</h1><button id="run">Запустить расчёт</button><p id="tick">Кадры интерфейса: 0</p><pre id="status">Готов к запуску</pre><pre id="events"></pre>
+<script type="module">
+const b=document.querySelector('#run'),status=document.querySelector('#status'),events=document.querySelector('#events'),tick=document.querySelector('#tick');
+b.onclick=async()=>{b.disabled=true;let n=0;const timer=setInterval(()=>tick.textContent=`Кадры интерфейса: ${++n}`,16);let stages=[];
+try{const input=await(await fetch('./solver_worker_fixture.json')).text(),expected=await(await fetch('./solver_worker_expected.json')).json();const w=new Worker('./solver_worker.js',{type:'module'});
+w.onerror=e=>{status.textContent='ОШИБКА: '+e.message;clearInterval(timer);b.disabled=false;w.terminate()};
+w.onmessage=({data})=>{if(data.kind==='progress'){const [s,t]=JSON.parse(data.payload);stages.push(s);status.textContent=s;events.textContent+=`${t.toFixed(3)} с · ${s}\n`;}
+else{clearInterval(timer);b.disabled=false;w.terminate();if(data.kind==='error'){status.textContent='ОШИБКА: '+data.payload;return;}
+const r=JSON.parse(data.payload);if(!r.first.Ok){status.textContent='ОШИБКА: '+JSON.stringify(r);return;}const c=r.first.Ok.cases[0],max=Math.max(...c.w_mm);const valid=Math.abs(c.applied_kn-expected.applied)<1e-8&&Math.abs(max-expected.max_w)<1e-6&&stages.some(s=>s.includes('Разложение'))&&n>0;
+status.textContent=`${valid?'ПРОВЕРКА ПРОШЛА':'ОШИБКА СРАВНЕНИЯ'}\nНагрузка: ${c.applied_kn.toFixed(6)} кН\nМаксимальный прогиб: ${max.toFixed(9)} мм\nБаланс: ${c.balance_kn}\nОбновлений интерфейса: ${n}`;}};w.postMessage(input);
+}catch(e){clearInterval(timer);b.disabled=false;status.textContent='ОШИБКА: '+e;}};
+</script>

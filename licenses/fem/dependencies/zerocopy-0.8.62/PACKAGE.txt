@@ -1,0 +1,4 @@
+zerocopy 0.8.62
+License declaration: BSD-2-Clause OR Apache-2.0 OR MIT
+Repository: https://github.com/google/zerocopy
+Registry source: registry+https://github.com/rust-lang/crates.io-index

@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8"><title>Параллельные загружения МКЭ</title><style>body{font:16px system-ui;background:#17202b;color:#e7edf6;padding:24px}button{font:inherit;padding:10px}pre{white-space:pre-wrap}table{border-collapse:collapse}td,th{border:1px solid #657386;padding:8px}</style>
+<h1>Параллельные загружения МКЭ</h1><p id="isolation"></p><button id="run">Сравнить 1 и 3 потока</button><p id="heartbeat">Обновлений интерфейса: 0</p><p id="status">Готов к запуску</p><table><thead><tr><th>Режим</th><th>Расчёт, с</th><th>С запуском Worker, с</th></tr></thead><tbody id="rows"></tbody></table><pre id="details"></pre>
+<script type="module">
+const isolation=document.getElementById('isolation'),run=document.getElementById('run'),heartbeat=document.getElementById('heartbeat'),rows=document.getElementById('rows'),details=document.getElementById('details'),state=document.getElementById('status');
+isolation.textContent='Общая память доступна: '+self.crossOriginIsolated;
+const start=(text,threads,expected)=>new Promise((resolve,reject)=>{
+ const channel=new BroadcastChannel('rconcrete-test-'+crypto.randomUUID()),w=new Worker('./solver_worker.js',{type:'module'}),begin=performance.now();let stages=[];
+ const stop=()=>{channel.close();w.terminate()};
+ const event=({data})=>{if(data.kind==='progress'){const item=JSON.parse(data.payload);stages.push(item);state.textContent=item[0];}
+ else if(data.kind==='error'){stop();reject(Error(data.payload));}
+ else {stop();const r=JSON.parse(data.payload),c=r.first?.Ok?.cases;if(!c){reject(Error(JSON.stringify(r)));return;}
+ const ok=c.length===3&&c.every((x,i)=>x.id===i+1&&Math.abs(x.applied_kn-expected.applied*(i+1))<1e-7&&Math.abs(x.balance_kn)<1e-7&&x.w_mm.every((v,j)=>Math.abs(v-c[0].w_mm[j]*(i+1))<1e-6));
+ if(!ok){reject(Error('Несовпадение решений'));return;}
+ const events=r.events?.length?r.events:stages,elapsed=events.findLast(x=>x[0]==='Расчёт завершён')?.[1];
+ resolve({threads,cases:c,events,elapsed,wall:(performance.now()-begin)/1000,stages});}};
+ channel.onmessage=({data})=>event({data:{kind:'progress',payload:JSON.stringify(data)}});
+ w.onmessage=event;w.onerror=e=>{stop();reject(Error(e.message))};
+ w.postMessage({text,threads,channel:channel.name});});
+run.onclick=async()=>{run.disabled=true;rows.textContent='';details.textContent='';let beat=0;const timer=setInterval(()=>heartbeat.textContent='Обновлений интерфейса: '+(++beat),16);
+ try{const text=await(await fetch('./solver_worker_fixture.json')).text(),expected=await(await fetch('./solver_worker_expected.json')).json();
+ const results=[];for(const threads of [1,3]){const r=await start(text,threads,expected);results.push(r);const row=rows.insertRow();for(const v of [threads,r.elapsed?.toFixed(4),r.wall.toFixed(4)])row.insertCell().textContent=v;}
+ const parallel=results[1],actual=parallel.events.some(x=>x[0].includes('3 поток'));
+ const difference=Math.max(...parallel.cases.flatMap((c,i)=>c.w_mm.map((v,j)=>Math.abs(v-results[0].cases[i].w_mm[j]))));
+ state.textContent=(actual&&difference<1e-8?'ПРОВЕРКА ПРОШЛА':'ПРОВЕРКА НЕ ПРОШЛА')+' · max Δw = '+difference+' мм';
+ details.textContent=parallel.events.map(x=>x[1].toFixed(4)+' с · '+x[0]).join('\n');
+ }catch(e){state.textContent='ОШИБКА: '+e.message;}finally{clearInterval(timer);run.disabled=false;}};
+</script>

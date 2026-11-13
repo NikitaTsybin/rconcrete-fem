@@ -1,0 +1,12 @@
+[package]
+name = "lira_txt_parser"
+version = "0.1.0"
+edition = "2021"
+description = "Standalone parser for expanded LIRA-SAPR TXT geometry"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+encoding_rs = "0.8"

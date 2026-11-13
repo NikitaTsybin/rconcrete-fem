@@ -1,0 +1,4 @@
+equator 0.2.2
+License declaration: MIT
+Repository: https://github.com/sarah-ek/equator/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

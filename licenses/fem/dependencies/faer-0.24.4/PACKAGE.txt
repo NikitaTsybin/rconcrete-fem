@@ -1,0 +1,4 @@
+faer 0.24.4
+License declaration: MIT
+Repository: https://codeberg.org/sarah-quinones/faer
+Registry source: registry+https://github.com/rust-lang/crates.io-index

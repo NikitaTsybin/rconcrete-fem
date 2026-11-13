@@ -1,0 +1,4 @@
+bitflags 2.13.2
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/bitflags/bitflags
+Registry source: registry+https://github.com/rust-lang/crates.io-index

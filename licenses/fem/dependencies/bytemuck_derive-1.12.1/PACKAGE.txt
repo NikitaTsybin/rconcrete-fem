@@ -1,0 +1,4 @@
+bytemuck_derive 1.12.1
+License declaration: Zlib OR Apache-2.0 OR MIT
+Repository: https://github.com/Lokathor/bytemuck
+Registry source: registry+https://github.com/rust-lang/crates.io-index

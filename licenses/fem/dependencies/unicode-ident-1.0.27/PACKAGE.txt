@@ -1,0 +1,4 @@
+unicode-ident 1.0.27
+License declaration: (MIT OR Apache-2.0) AND Unicode-3.0
+Repository: https://github.com/dtolnay/unicode-ident
+Registry source: registry+https://github.com/rust-lang/crates.io-index

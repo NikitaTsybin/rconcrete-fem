@@ -1,0 +1,4 @@
+reborrow 0.5.5
+License declaration: MIT
+Repository: https://github.com/sarah-ek/reborrow/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

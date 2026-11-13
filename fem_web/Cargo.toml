@@ -1,0 +1,45 @@
+[package]
+name = "slab_contours_web"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+lir_asp_parser = { path = "../extra/lir_asp_rust" }
+mini_fem = { path = ".." }
+eframe = { version = "0.31", default-features = false, features = ["default_fonts", "wgpu"] }
+wgpu = { version = "24", default-features = false, features = ["webgl"] }
+rfd = "0.15"
+encoding_rs = "0.8"
+wasm-bindgen = "=0.2.127"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["HtmlCanvasElement", "Window", "Document"] }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+js-sys = "0.3"
+
+zip = { version = "4.6.1", default-features = false, features = ["deflate-flate2"] }
+flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
+
+web-time = "1"
+
+hayro = "=0.7.1"
+
+glam = "0.30"
+bytemuck = { version="1",features=["derive"] }
+earcutr="0.4"
+geo={version="0.33",default-features=false}
+spade="=2.15.1"
+rstar="0.12"
+faer={version="=0.24.4",default-features=false,features=["std","sparse-linalg"]}
+
+rayon = {version="1.11",optional=true}
+wasm-bindgen-rayon = {version="1.3",features=["no-bundler"],optional=true}
+
+[features]
+parallel-solver = ["dep:rayon","dep:wasm-bindgen-rayon"]
+inference-bench = []

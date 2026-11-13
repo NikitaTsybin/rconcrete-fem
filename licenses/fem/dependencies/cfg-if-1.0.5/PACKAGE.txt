@@ -1,0 +1,4 @@
+cfg-if 1.0.5
+License declaration: MIT OR Apache-2.0
+Repository: https://github.com/rust-lang/cfg-if
+Registry source: registry+https://github.com/rust-lang/crates.io-index

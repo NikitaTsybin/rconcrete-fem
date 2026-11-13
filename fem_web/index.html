@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RConcrete · МКЭ</title>
+    <link rel="icon" href="icon.png">
+    <style>
+        html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #1b2028; color: #f0f3f8; font: 16px/1.5 system-ui, sans-serif; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .startup { position: fixed; inset: 0; display: grid; place-items: safe center; overflow: auto; box-sizing: border-box; padding: 20px; background: #1b2028; }
+        .startup-panel { box-sizing: border-box; width: 100%; max-width: 34rem; padding: 20px; background: #242c36; border: 1px solid #414c5a; border-radius: 10px; overflow-wrap: anywhere; }
+        .startup-panel h1 { font-size: 1.25rem; margin: 0 0 0.5em; }
+        .startup-panel p { margin: 0; }
+        .startup-panel details, .startup-panel button { margin-top: 0.75em; }
+        .startup-panel pre { white-space: pre-wrap; font-size: 0.85rem; }
+        .startup-panel button { padding: 0.45em 0.85em; font: inherit; color: #f0f3f8; background: #344859; border: 1px solid #617484; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <main id="status" class="startup" role="status" aria-live="polite" data-state="loading">
+        <div class="startup-panel">
+            <h1 id="startup-title">Запуск Rconcrete FEM</h1>
+            <p id="startup-message">Проверяем возможности браузера…</p>
+            <details id="startup-details" hidden>
+                <summary>Технические сведения</summary>
+                <pre id="startup-error"></pre>
+            </details>
+            <button id="startup-retry" type="button" hidden>Обновить страницу</button>
+        </div>
+    </main>
+    <noscript>
+        <style>#status { display: none; }</style>
+        <div class="startup"><div class="startup-panel"><h1>Для запуска нужен JavaScript</h1><p>Разрешите JavaScript для этого сайта и обновите страницу.</p></div></div>
+    </noscript>
+    <script nomodule>
+        document.getElementById('status').setAttribute('data-state', 'error');
+        document.getElementById('startup-title').textContent = 'Браузер не поддерживает запуск';
+        document.getElementById('startup-message').textContent = 'Обновите браузер или откройте сайт в браузере с WebAssembly и поддержкой WebGPU или WebGL2.';
+    </script>
+    <script type="module">
+        const status = document.getElementById('status');
+        const title = document.getElementById('startup-title');
+        const message = document.getElementById('startup-message');
+        const details = document.getElementById('startup-details');
+        const retry = document.getElementById('startup-retry');
+        retry.addEventListener('click', () => location.reload());
+
+        function bindUndoShortcut() {
+            const canvas = document.getElementById('canvas');
+            const textAgent = document.querySelector('body > input[type="text"]');
+            let mappedKey = false;
+            const handle = event => {
+                if ((event.target !== canvas && event.target !== textAgent) || event.code !== 'KeyZ') return;
+                if (event.type === 'keydown') {
+                    if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.shiftKey || event.isComposing) return;
+                    if (event.key.length !== 1 || /^[\x20-\x7e]$/.test(event.key)) return;
+                    mappedKey = true;
+                } else {
+                    if (!mappedKey) return;
+                    mappedKey = false;
+                    if (event.key.toLowerCase() === 'z') return;
+                }
+                // eframe 0.31 only forwards logical keys on the web.
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                event.target.dispatchEvent(new KeyboardEvent(event.type, {
+                    key: 'z', code: 'KeyZ', ctrlKey: event.ctrlKey, metaKey: event.metaKey,
+                    repeat: event.repeat, bubbles: true, cancelable: true,
+                }));
+            };
+            document.addEventListener('keydown', handle, true);
+            document.addEventListener('keyup', handle, true);
+            window.addEventListener('blur', () => { mappedKey = false; });
+        }
+
+        function failure(reason, heading, description, error) {
+            status.dataset.state = 'error';
+            status.dataset.reason = reason;
+            title.textContent = heading;
+            message.textContent = description;
+            details.hidden = !error;
+            document.getElementById('startup-error').textContent = error ? String(error) : '';
+            retry.hidden = false;
+        }
+
+        async function stage(description, timeout, run) {
+            status.dataset.state = 'loading';
+            delete status.dataset.reason;
+            title.textContent = 'Запуск Rconcrete FEM';
+            message.textContent = description;
+            details.hidden = true;
+            retry.hidden = true;
+            const timer = setTimeout(() => {
+                if (status.dataset.state === 'loading') {
+                    failure('timeout', 'Запуск занимает больше времени',
+                        'Можно подождать или обновить страницу.', description);
+                }
+            }, timeout);
+            try {
+                return await run();
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function start() {
+            if (typeof WebAssembly !== 'object') {
+                failure('wasm-unavailable', 'WebAssembly недоступен',
+                    'Обновите браузер или откройте сайт в другом браузере с поддержкой WebAssembly.');
+                return;
+            }
+            let app;
+            try {
+                app = await stage('Загружаем модуль МКЭ…', 90_000, async () => {
+                    const module = await import('./pkg/slab_contours_web.js');
+                    if (typeof module.start_application !== 'function' || typeof module.stop_application !== 'function') {
+                        throw new Error('Модуль приложения не совпадает с версией страницы');
+                    }
+                    await module.default();
+                    return module;
+                });
+            } catch (error) {
+                failure('wasm-load', 'Не удалось загрузить модуль МКЭ',
+                    'Проверьте соединение и обновите страницу. Если ошибка повторяется, пришлите технические сведения.', error);
+                return;
+            }
+
+            const preferWebGl = new URLSearchParams(location.search).get('graphics') === 'webgl2';
+            const hasWebGpu = window.isSecureContext && typeof navigator.gpu?.requestAdapter === 'function';
+            const backends = !preferWebGl && hasWebGpu ? ['webgpu', 'webgl2'] : ['webgl2'];
+            const errors = !preferWebGl && !hasWebGpu ? [
+                window.isSecureContext ? 'WebGPU: API недоступен' : 'WebGPU: требуется HTTPS или localhost',
+            ] : [];
+            for (const backend of backends) {
+                const name = backend === 'webgpu' ? 'WebGPU' : 'WebGL2';
+                try {
+                    await stage(`Запускаем графику и интерфейс (${name})…`, 30_000,
+                        () => startGraphics(app, backend));
+                    document.documentElement.dataset.graphicsBackend = backend;
+                    bindUndoShortcut();
+                    status.remove();
+                    return;
+                } catch (error) {
+                    errors.push(`${name}: ${error}`);
+                    if (backend === 'webgpu') {
+                        // A canvas that has acquired a WebGPU context cannot acquire a WebGL2 context.
+                        const canvas = document.getElementById('canvas');
+                        canvas.replaceWith(canvas.cloneNode(false));
+                    }
+                }
+            }
+            failure('graphics-init', 'Не удалось запустить графику Rconcrete FEM',
+                'Для запуска нужен доступный WebGPU или WebGL2. Попробуйте открыть сайт в системном браузере. Если ошибка повторится, пришлите технические сведения.',
+                errors.join('\n'));
+        }
+
+        async function startGraphics(app, backend) {
+            let startupError;
+            const onError = (event) => {
+                startupError ??= event.error || event.reason || event.message || 'Ошибка графического запуска';
+            };
+            window.addEventListener('error', onError);
+            window.addEventListener('unhandledrejection', onError);
+            try {
+                await app.start_application(backend === 'webgl2');
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                if (startupError) throw startupError;
+            } catch (error) {
+                app.stop_application();
+                throw error;
+            } finally {
+                window.removeEventListener('error', onError);
+                window.removeEventListener('unhandledrejection', onError);
+            }
+        }
+
+        start();
+    </script>
+</body>
+</html>

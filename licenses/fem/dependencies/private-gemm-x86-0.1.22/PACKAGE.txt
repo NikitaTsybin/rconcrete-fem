@@ -1,0 +1,4 @@
+private-gemm-x86 0.1.22
+License declaration: MIT
+Repository: https://github.com/sarah-quinones/gemm-x64-v2/
+Registry source: registry+https://github.com/rust-lang/crates.io-index

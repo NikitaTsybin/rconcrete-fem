@@ -1,0 +1,4 @@
+interpol 0.2.1
+License declaration: MIT
+Repository: https://github.com/tanakh/interpol
+Registry source: registry+https://github.com/rust-lang/crates.io-index

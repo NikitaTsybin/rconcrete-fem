@@ -1,0 +1,9 @@
+Meshing generator: Spade 2.15.1
+Source: https://github.com/Stoeoef/spade
+License choice for Spade: MIT. Copyright (c) 2017 The Spade Developers.
+License text is included in licenses/meshing/spade-2.15.1/LICENSE-MIT.
+
+The licenses/meshing directory includes license notices shipped by all crates
+in Spade's dependency tree (including existing shared dependencies).
+Keep this directory with distributed binaries. Other application dependencies
+retain their own license terms. This notice concerns the meshing addition.
